@@ -1,0 +1,56 @@
+# Vela CI — build & verify across platforms.
+# SPDX-License-Identifier: Apache-2.0
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, detekt & coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Spotless + detekt
+        run: ./gradlew spotlessCheck detekt
+      - name: Coverage verify
+        run: ./gradlew koverVerify
+
+  android-desktop:
+    name: Build Android + Desktop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Assemble + test
+        run: ./gradlew :apps:calculator:androidApp:assembleDebug :apps:calculator:desktopApp:packageDistributionForCurrentOS test
+
+  ios:
+    name: Build iOS framework
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Compile iOS targets
+        run: ./gradlew :apps:calculator:ui:compileKotlinIosSimulatorArm64

@@ -1,0 +1,12 @@
+Vela
+Copyright 2026 The Vela Authors
+
+This product includes software developed by The Vela Authors.
+
+Vela is an original, clean-room implementation. It is inspired by the
+feature set of the SimpleMobileTools suite and its community fork Fossify
+(https://github.com/FossifyOrg), both licensed under GPL-3.0. No source code
+from those projects is copied into Vela; they are used only as a functional
+reference. See docs/clean-room-policy.md for details.
+
+Vela is licensed under the Apache License, Version 2.0. See the LICENSE file.

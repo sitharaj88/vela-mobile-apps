@@ -1,0 +1,32 @@
+# Normalize all text to LF in the repo for cross-platform consistency.
+* text=auto eol=lf
+
+# Scripts that must keep platform-specific endings
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+gradlew     text eol=lf
+*.sh        text eol=lf
+
+# Source & config (explicit for clarity)
+*.kt        text eol=lf
+*.kts       text eol=lf
+*.java      text eol=lf
+*.swift     text eol=lf
+*.xml       text eol=lf
+*.toml      text eol=lf
+*.md        text eol=lf
+*.pro       text eol=lf
+*.plist     text eol=lf
+
+# Binary assets — never normalize or diff as text
+*.jar       binary
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.webp      binary
+*.ttf       binary
+*.otf       binary
+*.apk       binary
+*.aab       binary
+*.keystore  binary
+*.jks       binary

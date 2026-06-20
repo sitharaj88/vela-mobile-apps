@@ -1,0 +1,43 @@
+# Vela detekt configuration — built upon the default config.
+# SPDX-License-Identifier: Apache-2.0
+
+build:
+  maxIssues: 0
+  weights: {}
+
+complexity:
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 10
+    ignoreDefaultParameters: true
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    active: false
+  LongMethod:
+    threshold: 80
+    ignoreAnnotated: ['Composable', 'Preview']
+
+style:
+  MagicNumber:
+    active: true
+    ignoreAnnotated: ['Composable', 'Preview']
+    ignorePropertyDeclaration: true
+    ignoreEnums: true
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+  MaxLineLength:
+    maxLineLength: 120
+
+naming:
+  FunctionNaming:
+    functionPattern: '[a-z][a-zA-Z0-9]*'
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][A-Za-z0-9]*'
+
+comments:
+  active: true
+  UndocumentedPublicClass:
+    active: false
+  UndocumentedPublicFunction:
+    active: false

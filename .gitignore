@@ -1,0 +1,41 @@
+# Gradle
+.gradle/
+build/
+**/build/
+gradle-app.setting
+.kotlin/
+
+# Android
+local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+.cxx/
+release/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.hprof
+
+# macOS / iOS
+.DS_Store
+**/iosApp/iosApp.xcodeproj/project.xcworkspace/xcuserdata/
+**/iosApp/iosApp.xcodeproj/xcuserdata/
+**/iosApp/Pods/
+**/iosApp/build/
+xcuserdata/
+
+# Desktop packaging
+**/desktopApp/release/
+
+# Secrets / signing
+*.keystore
+*.jks
+keystore.properties
+fastlane/.env
+**/google-services.json
