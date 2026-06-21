@@ -4,6 +4,7 @@
  */
 package com.vela.apps.calculator.presentation
 
+import com.vela.apps.calculator.domain.model.AngleMode
 import com.vela.apps.calculator.domain.model.HistoryEntry
 
 /** Immutable UI state rendered by the calculator screen. */
@@ -12,6 +13,8 @@ data class CalculatorState(
     val preview: String = "",
     val isError: Boolean = false,
     val history: List<HistoryEntry> = emptyList(),
+    val isScientific: Boolean = false,
+    val angleMode: AngleMode = AngleMode.Degrees,
 ) {
     /** Big primary line — shows a friendly zero when nothing has been entered. */
     val display: String get() = expression.ifEmpty { "0" }
@@ -26,6 +29,8 @@ sealed interface CalculatorIntent {
     data object Evaluate : CalculatorIntent
     data class RecallHistory(val entry: HistoryEntry) : CalculatorIntent
     data object ClearHistory : CalculatorIntent
+    data object ToggleScientific : CalculatorIntent
+    data object ToggleAngleMode : CalculatorIntent
 }
 
 /** One-shot events (consumed once by the UI). */

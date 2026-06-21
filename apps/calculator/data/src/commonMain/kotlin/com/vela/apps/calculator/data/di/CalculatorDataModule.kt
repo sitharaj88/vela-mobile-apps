@@ -4,13 +4,19 @@
  */
 package com.vela.apps.calculator.data.di
 
-import com.vela.apps.calculator.data.InMemoryHistoryRepository
+import com.vela.apps.calculator.data.RoomHistoryRepository
+import com.vela.apps.calculator.data.local.CalculatorDatabase
+import com.vela.apps.calculator.data.local.buildCalculatorDatabase
+import com.vela.apps.calculator.data.local.platformDatabaseModule
 import com.vela.apps.calculator.domain.repository.HistoryRepository
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-/** Binds the calculator's data sources. Swap the repository impl here to move to Room. */
+/** Wires the calculator's Room database, DAO, and the repository binding. */
 val calculatorDataModule = module {
-    singleOf(::InMemoryHistoryRepository) bind HistoryRepository::class
+    includes(platformDatabaseModule())
+    single { buildCalculatorDatabase(get()) }
+    single { get<CalculatorDatabase>().historyDao() }
+    singleOf(::RoomHistoryRepository) bind HistoryRepository::class
 }

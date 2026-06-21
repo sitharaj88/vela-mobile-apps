@@ -7,7 +7,7 @@ package com.vela.apps.calculator.ui.di
 import com.vela.apps.calculator.data.di.calculatorDataModule
 import com.vela.apps.calculator.presentation.CalculatorStore
 import com.vela.apps.calculator.presentation.di.calculatorPresentationModule
-import org.koin.compose.viewmodel.dsl.viewModelOf
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 /** Single entry point platforms use to wire the whole Calculator app. */

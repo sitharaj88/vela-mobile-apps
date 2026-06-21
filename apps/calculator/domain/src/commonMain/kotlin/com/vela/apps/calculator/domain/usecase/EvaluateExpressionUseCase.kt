@@ -5,11 +5,15 @@
 package com.vela.apps.calculator.domain.usecase
 
 import com.vela.apps.calculator.domain.engine.ExpressionEvaluator
+import com.vela.apps.calculator.domain.model.AngleMode
 import com.vela.apps.calculator.domain.model.CalculationResult
 
 /** Use case the presentation layer calls to evaluate the current expression. */
 class EvaluateExpressionUseCase(
     private val evaluator: ExpressionEvaluator = ExpressionEvaluator(),
 ) {
-    operator fun invoke(expression: String): CalculationResult = evaluator.evaluate(expression)
+    operator fun invoke(
+        expression: String,
+        angleMode: AngleMode = AngleMode.Radians,
+    ): CalculationResult = evaluator.evaluate(expression, angleMode)
 }

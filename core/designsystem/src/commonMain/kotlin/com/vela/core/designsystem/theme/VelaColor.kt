@@ -45,6 +45,30 @@ enum class VelaAccent(
         lightPrimary = Color(0xFF2E6A33), lightSecondary = Color(0xFF53634F), lightTertiary = Color(0xFF38656A),
         darkPrimary = Color(0xFF9BD49A), darkSecondary = Color(0xFFBACAB3), darkTertiary = Color(0xFFA0CFD4),
     ),
+    Sky(
+        lightPrimary = Color(0xFF0061A4), lightSecondary = Color(0xFF526070), lightTertiary = Color(0xFF6B5778),
+        darkPrimary = Color(0xFF9ECAFF), darkSecondary = Color(0xFFBAC8DB), darkTertiary = Color(0xFFD7BEE4),
+    ),
+    Sunset(
+        lightPrimary = Color(0xFF8F4C00), lightSecondary = Color(0xFF755846), lightTertiary = Color(0xFF5F6135),
+        darkPrimary = Color(0xFFFFB77C), darkSecondary = Color(0xFFE5C0A8), darkTertiary = Color(0xFFC8CB91),
+    ),
+    Plum(
+        lightPrimary = Color(0xFF8B418F), lightSecondary = Color(0xFF6E5868), lightTertiary = Color(0xFF815343),
+        darkPrimary = Color(0xFFFCACFB), darkSecondary = Color(0xFFDBBFD3), darkTertiary = Color(0xFFF5B8A6),
+    ),
+    Crimson(
+        lightPrimary = Color(0xFFBC0042), lightSecondary = Color(0xFF74565C), lightTertiary = Color(0xFF7C5635),
+        darkPrimary = Color(0xFFFFB2BC), darkSecondary = Color(0xFFE3BDC4), darkTertiary = Color(0xFFEFBD93),
+    ),
+    Cyan(
+        lightPrimary = Color(0xFF00696E), lightSecondary = Color(0xFF4A6365), lightTertiary = Color(0xFF4C6079),
+        darkPrimary = Color(0xFF4CDADF), darkSecondary = Color(0xFFB1CBCC), darkTertiary = Color(0xFFB3CAE8),
+    ),
+    Slate(
+        lightPrimary = Color(0xFF44617C), lightSecondary = Color(0xFF555F71), lightTertiary = Color(0xFF6C5677),
+        darkPrimary = Color(0xFFACC9EA), darkSecondary = Color(0xFFBDC8DC), darkTertiary = Color(0xFFD7BDE3),
+    ),
     ;
 
     fun lightScheme(): ColorScheme = lightColorScheme(

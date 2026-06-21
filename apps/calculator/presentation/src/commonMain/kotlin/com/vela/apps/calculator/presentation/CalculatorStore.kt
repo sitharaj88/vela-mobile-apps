@@ -5,6 +5,7 @@
 package com.vela.apps.calculator.presentation
 
 import androidx.lifecycle.viewModelScope
+import com.vela.apps.calculator.domain.model.AngleMode
 import com.vela.apps.calculator.domain.model.CalculationError
 import com.vela.apps.calculator.domain.model.CalculationResult
 import com.vela.apps.calculator.domain.repository.HistoryRepository
@@ -38,7 +39,20 @@ class CalculatorStore(
             CalculatorIntent.Evaluate -> evaluateNow()
             is CalculatorIntent.RecallHistory -> updateExpression(intent.entry.result)
             CalculatorIntent.ClearHistory -> viewModelScope.launch { history.clear() }
+            CalculatorIntent.ToggleScientific ->
+                setState { copy(isScientific = !isScientific) }
+            CalculatorIntent.ToggleAngleMode -> toggleAngleMode()
         }
+    }
+
+    private fun toggleAngleMode() {
+        val next = if (currentState.angleMode == AngleMode.Degrees) {
+            AngleMode.Radians
+        } else {
+            AngleMode.Degrees
+        }
+        // Recompute the live preview so a trig expression updates immediately on the unit switch.
+        setState { copy(angleMode = next, preview = computePreview(expression, next)) }
     }
 
     private fun append(token: String) {
@@ -48,18 +62,24 @@ class CalculatorStore(
     }
 
     private fun updateExpression(expression: String) {
-        setState { copy(expression = expression, preview = computePreview(expression), isError = false) }
+        setState {
+            copy(
+                expression = expression,
+                preview = computePreview(expression, angleMode),
+                isError = false,
+            )
+        }
     }
 
-    private fun computePreview(expression: String): String =
-        when (val result = evaluate(expression)) {
+    private fun computePreview(expression: String, angleMode: AngleMode): String =
+        when (val result = evaluate(expression, angleMode)) {
             is CalculationResult.Success -> result.formatted
             is CalculationResult.Failure -> "" // don't surface errors during typing
         }
 
     private fun evaluateNow() {
         val expression = currentState.expression
-        when (val result = evaluate(expression)) {
+        when (val result = evaluate(expression, currentState.angleMode)) {
             is CalculationResult.Success -> {
                 setState { copy(expression = result.formatted, preview = "", isError = false) }
                 viewModelScope.launch { history.add(expression, result.formatted) }

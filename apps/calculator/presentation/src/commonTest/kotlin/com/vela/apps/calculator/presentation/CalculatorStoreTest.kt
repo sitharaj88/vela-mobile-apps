@@ -6,6 +6,7 @@ package com.vela.apps.calculator.presentation
 
 import app.cash.turbine.test
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.vela.apps.calculator.domain.model.AngleMode
 import com.vela.apps.calculator.domain.model.HistoryEntry
 import com.vela.apps.calculator.domain.repository.HistoryRepository
 import com.vela.apps.calculator.domain.usecase.EvaluateExpressionUseCase
@@ -96,5 +97,37 @@ class CalculatorStoreTest {
 
         assertEquals("", store.state.value.expression)
         assertEquals(1, store.state.value.history.size)
+    }
+
+    @Test
+    fun toggle_scientific_flips_mode() = runTest(dispatcher) {
+        assertEquals(false, store.state.value.isScientific)
+        store.onIntent(CalculatorIntent.ToggleScientific)
+        assertEquals(true, store.state.value.isScientific)
+        store.onIntent(CalculatorIntent.ToggleScientific)
+        assertEquals(false, store.state.value.isScientific)
+    }
+
+    @Test
+    fun toggle_angle_mode_switches_between_deg_and_rad() = runTest(dispatcher) {
+        assertEquals(AngleMode.Degrees, store.state.value.angleMode)
+        store.onIntent(CalculatorIntent.ToggleAngleMode)
+        assertEquals(AngleMode.Radians, store.state.value.angleMode)
+        store.onIntent(CalculatorIntent.ToggleAngleMode)
+        assertEquals(AngleMode.Degrees, store.state.value.angleMode)
+    }
+
+    @Test
+    fun angle_mode_affects_preview_and_result() = runTest(dispatcher) {
+        // Default is Degrees: sin(90) = 1.
+        listOf("s", "i", "n", "(", "9", "0", ")").forEach {
+            store.onIntent(CalculatorIntent.Append(it))
+        }
+        assertEquals("1", store.state.value.preview)
+
+        // Switching to Radians recomputes the preview immediately for the same expression.
+        store.onIntent(CalculatorIntent.ToggleAngleMode)
+        assertEquals(AngleMode.Radians, store.state.value.angleMode)
+        assertTrue(store.state.value.preview != "1")
     }
 }

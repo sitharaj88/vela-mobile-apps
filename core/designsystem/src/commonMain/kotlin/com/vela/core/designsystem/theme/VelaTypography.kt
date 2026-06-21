@@ -18,20 +18,33 @@ import androidx.compose.ui.unit.sp
  */
 private val brandSans = FontFamily.SansSerif
 
+private fun vela(
+    weight: FontWeight,
+    size: Int,
+    lineHeight: Int,
+    tracking: Double = 0.0,
+) = TextStyle(
+    fontFamily = brandSans,
+    fontWeight = weight,
+    fontSize = size.sp,
+    lineHeight = lineHeight.sp,
+    letterSpacing = tracking.sp,
+)
+
 val VelaTypography = Typography(
-    displayLarge = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Normal, fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.25).sp),
-    displayMedium = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Normal, fontSize = 45.sp, lineHeight = 52.sp),
-    displaySmall = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Normal, fontSize = 36.sp, lineHeight = 44.sp),
-    headlineLarge = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.SemiBold, fontSize = 32.sp, lineHeight = 40.sp),
-    headlineMedium = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.SemiBold, fontSize = 28.sp, lineHeight = 36.sp),
-    headlineSmall = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 32.sp),
-    titleLarge = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.SemiBold, fontSize = 22.sp, lineHeight = 28.sp),
-    titleMedium = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Medium, fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.15.sp),
-    titleSmall = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.1.sp),
-    bodyLarge = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 24.sp, letterSpacing = 0.5.sp),
-    bodyMedium = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.25.sp),
-    bodySmall = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Normal, fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.4.sp),
-    labelLarge = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp, letterSpacing = 0.1.sp),
-    labelMedium = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.5.sp),
-    labelSmall = TextStyle(fontFamily = brandSans, fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.5.sp),
+    displayLarge = vela(FontWeight.Normal, size = 57, lineHeight = 64, tracking = -0.25),
+    displayMedium = vela(FontWeight.Normal, size = 45, lineHeight = 52),
+    displaySmall = vela(FontWeight.Normal, size = 36, lineHeight = 44),
+    headlineLarge = vela(FontWeight.SemiBold, size = 32, lineHeight = 40),
+    headlineMedium = vela(FontWeight.SemiBold, size = 28, lineHeight = 36),
+    headlineSmall = vela(FontWeight.SemiBold, size = 24, lineHeight = 32),
+    titleLarge = vela(FontWeight.SemiBold, size = 22, lineHeight = 28),
+    titleMedium = vela(FontWeight.Medium, size = 16, lineHeight = 24, tracking = 0.15),
+    titleSmall = vela(FontWeight.Medium, size = 14, lineHeight = 20, tracking = 0.1),
+    bodyLarge = vela(FontWeight.Normal, size = 16, lineHeight = 24, tracking = 0.5),
+    bodyMedium = vela(FontWeight.Normal, size = 14, lineHeight = 20, tracking = 0.25),
+    bodySmall = vela(FontWeight.Normal, size = 12, lineHeight = 16, tracking = 0.4),
+    labelLarge = vela(FontWeight.Medium, size = 14, lineHeight = 20, tracking = 0.1),
+    labelMedium = vela(FontWeight.Medium, size = 12, lineHeight = 16, tracking = 0.5),
+    labelSmall = vela(FontWeight.Medium, size = 11, lineHeight = 16, tracking = 0.5),
 )

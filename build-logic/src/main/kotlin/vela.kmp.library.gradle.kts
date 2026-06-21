@@ -30,6 +30,12 @@ private val derivedNamespace =
     "com.vela." + path.removePrefix(":").replace(":", ".").replace("-", "")
 
 extensions.configure<KotlinMultiplatformExtension> {
+    // expect/actual classes (used by Room's @ConstructedBy + our platform seams) are stable in
+    // practice but still flagged Beta; opt in across the suite so builds stay warning-clean.
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     androidTarget {
         compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
     }

@@ -4,26 +4,43 @@
  */
 package com.vela.apps.calculator.domain.engine
 
+import com.vela.apps.calculator.domain.model.AngleMode
 import com.vela.apps.calculator.domain.model.CalculationError
 import com.vela.apps.calculator.domain.model.CalculationResult
+import kotlin.math.E
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.acos
+import kotlin.math.asin
+import kotlin.math.atan
+import kotlin.math.cos
+import kotlin.math.exp
+import kotlin.math.ln
+import kotlin.math.log10
 import kotlin.math.pow
+import kotlin.math.round
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.math.tan
 
 /**
- * Evaluates infix arithmetic expressions using the shunting-yard algorithm.
+ * Evaluates infix scientific expressions using the shunting-yard algorithm.
  *
- * Supports: + - * / % ^, parentheses, unary minus, and decimals. Original clean-room
- * implementation — no third-party or GPL code involved.
+ * Supports: + - * / % ^, parentheses, unary minus, decimals; the functions sin, cos, tan, asin,
+ * acos, atan, log (base 10), ln, sqrt, abs, exp; the constants pi (π) and e; postfix factorial (!);
+ * and a postfix percentage (%) operator. Trigonometry honours the supplied [AngleMode]. Original
+ * clean-room implementation — no third-party or GPL code involved.
  */
 class ExpressionEvaluator {
 
-    fun evaluate(input: String): CalculationResult {
+    fun evaluate(input: String, angleMode: AngleMode = AngleMode.Radians): CalculationResult {
         val expression = input.trim()
         if (expression.isEmpty()) return CalculationResult.Failure(CalculationError.EmptyExpression)
 
         return try {
             val tokens = tokenize(expression)
             val rpn = toReversePolish(tokens)
-            val value = evaluateRpn(rpn)
+            val value = evaluateRpn(rpn, angleMode)
             when {
                 value.isNaN() -> CalculationResult.Failure(CalculationError.MalformedExpression)
                 value.isInfinite() -> CalculationResult.Failure(CalculationError.DivisionByZero)
@@ -41,14 +58,20 @@ class ExpressionEvaluator {
     private sealed interface Token {
         data class Num(val value: Double) : Token
         data class Op(val symbol: Char, val unary: Boolean = false) : Token
+        data class Func(val name: String) : Token
+        data object Factorial : Token
+        data object Percent : Token
         data object LParen : Token
         data object RParen : Token
     }
 
+    // A hand-written scanner is inherently branchy and validates many error cases; the complexity
+    // here is essential, not accidental.
+    @Suppress("CyclomaticComplexMethod", "NestedBlockDepth", "ThrowsCount", "LongMethod")
     private fun tokenize(expr: String): List<Token> {
         val tokens = mutableListOf<Token>()
         var i = 0
-        var prevWasValueOrClose = false // distinguishes binary vs unary minus
+        var prevWasValueOrClose = false // distinguishes binary vs unary minus and implicit needs
 
         while (i < expr.length) {
             val c = expr[i]
@@ -66,6 +89,51 @@ class ExpressionEvaluator {
                     val text = expr.substring(start, i)
                     tokens += Token.Num(text.toDoubleOrNull() ?: throw MalformedExpressionException())
                     prevWasValueOrClose = true
+                }
+
+                c == 'π' -> { // dedicated symbol — handled before the letter scanner
+                    tokens += Token.Num(PI)
+                    prevWasValueOrClose = true
+                    i++
+                }
+
+                c.isLetter() -> {
+                    val start = i
+                    while (i < expr.length && expr[i].isLetter() && expr[i] != 'π') i++
+                    val name = expr.substring(start, i).lowercase()
+                    when (val constant = CONSTANTS[name]) {
+                        null -> {
+                            if (name !in FUNCTIONS) throw MalformedExpressionException()
+                            tokens += Token.Func(name)
+                            prevWasValueOrClose = false
+                        }
+                        else -> {
+                            tokens += Token.Num(constant)
+                            prevWasValueOrClose = true
+                        }
+                    }
+                }
+
+                c == '!' -> {
+                    if (!prevWasValueOrClose) throw MalformedExpressionException()
+                    tokens += Token.Factorial
+                    prevWasValueOrClose = true
+                    i++
+                }
+
+                c == '%' -> {
+                    if (!prevWasValueOrClose) throw MalformedExpressionException()
+                    // '%' is postfix percentage at the end of an operand (end of input, or before a
+                    // closing paren / binary operator); it is binary modulo when another operand
+                    // follows, preserving the classic "10 % 3" behaviour.
+                    if (startsNewOperand(expr, i + 1)) {
+                        tokens += Token.Op('%')
+                        prevWasValueOrClose = false
+                    } else {
+                        tokens += Token.Percent
+                        prevWasValueOrClose = true
+                    }
+                    i++
                 }
 
                 c == '(' -> {
@@ -94,8 +162,19 @@ class ExpressionEvaluator {
         return tokens
     }
 
+    /** True if the first non-space char at [from] begins a new operand (number, constant, function,
+     *  unary sign, or an opening paren) — used to disambiguate '%' modulo from percentage. */
+    private fun startsNewOperand(expr: String, from: Int): Boolean {
+        var j = from
+        while (j < expr.length && expr[j].isWhitespace()) j++
+        if (j >= expr.length) return false
+        val c = expr[j]
+        return c.isDigit() || c == '.' || c.isLetter() || c == 'π' || c == '(' || c == '-' || c == '+'
+    }
+
     // ---- Shunting-yard: infix -> RPN ----
 
+    @Suppress("CyclomaticComplexMethod", "NestedBlockDepth")
     private fun toReversePolish(tokens: List<Token>): List<Token> {
         val output = mutableListOf<Token>()
         val stack = ArrayDeque<Token>()
@@ -103,14 +182,12 @@ class ExpressionEvaluator {
         for (token in tokens) {
             when (token) {
                 is Token.Num -> output += token
+                // Postfix operators emit immediately — they bind to the value already in output.
+                Token.Factorial, Token.Percent -> output += token
+                is Token.Func -> stack.addLast(token)
                 is Token.Op -> {
-                    while (stack.isNotEmpty()) {
-                        val top = stack.last()
-                        if (top is Token.Op && shouldPopOperator(token, top)) {
-                            output += stack.removeLast()
-                        } else {
-                            break
-                        }
+                    while (stack.isNotEmpty() && shouldPopForOperator(token, stack.last())) {
+                        output += stack.removeLast()
                     }
                     stack.addLast(token)
                 }
@@ -121,6 +198,8 @@ class ExpressionEvaluator {
                     }
                     if (stack.isEmpty()) throw MalformedExpressionException() // mismatched parens
                     stack.removeLast() // pop the LParen
+                    // A function name directly preceding the group applies to it.
+                    if (stack.isNotEmpty() && stack.last() is Token.Func) output += stack.removeLast()
                 }
             }
         }
@@ -130,6 +209,12 @@ class ExpressionEvaluator {
             output += top
         }
         return output
+    }
+
+    private fun shouldPopForOperator(incoming: Token.Op, top: Token): Boolean = when (top) {
+        is Token.Func -> true // functions bind tighter than any binary/unary operator
+        is Token.Op -> shouldPopOperator(incoming, top)
+        else -> false // LParen
     }
 
     private fun shouldPopOperator(incoming: Token.Op, top: Token.Op): Boolean {
@@ -149,11 +234,24 @@ class ExpressionEvaluator {
 
     // ---- RPN evaluation ----
 
-    private fun evaluateRpn(rpn: List<Token>): Double {
+    @Suppress("ThrowsCount", "CyclomaticComplexMethod")
+    private fun evaluateRpn(rpn: List<Token>, angleMode: AngleMode): Double {
         val stack = ArrayDeque<Double>()
         for (token in rpn) {
             when (token) {
                 is Token.Num -> stack.addLast(token.value)
+                is Token.Func -> {
+                    val arg = stack.removeLastOrNull() ?: throw MalformedExpressionException()
+                    stack.addLast(applyFunction(token.name, arg, angleMode))
+                }
+                Token.Factorial -> {
+                    val arg = stack.removeLastOrNull() ?: throw MalformedExpressionException()
+                    stack.addLast(factorial(arg))
+                }
+                Token.Percent -> {
+                    val arg = stack.removeLastOrNull() ?: throw MalformedExpressionException()
+                    stack.addLast(arg / PERCENT_DIVISOR)
+                }
                 is Token.Op -> {
                     if (token.unary) {
                         val operand = stack.removeLastOrNull() ?: throw MalformedExpressionException()
@@ -180,11 +278,51 @@ class ExpressionEvaluator {
         else -> throw MalformedExpressionException()
     }
 
+    private fun applyFunction(name: String, arg: Double, angleMode: AngleMode): Double = when (name) {
+        "sin" -> sin(toRadians(arg, angleMode))
+        "cos" -> cos(toRadians(arg, angleMode))
+        "tan" -> tan(toRadians(arg, angleMode))
+        "asin" -> fromRadians(asin(arg), angleMode)
+        "acos" -> fromRadians(acos(arg), angleMode)
+        "atan" -> fromRadians(atan(arg), angleMode)
+        "log" -> log10(arg)
+        "ln" -> ln(arg)
+        "sqrt" -> sqrt(arg)
+        "abs" -> abs(arg)
+        "exp" -> exp(arg)
+        else -> throw MalformedExpressionException()
+    }
+
+    private fun toRadians(value: Double, angleMode: AngleMode): Double =
+        if (angleMode == AngleMode.Degrees) value * PI / STRAIGHT_ANGLE else value
+
+    private fun fromRadians(value: Double, angleMode: AngleMode): Double =
+        if (angleMode == AngleMode.Degrees) value * STRAIGHT_ANGLE / PI else value
+
+    private fun factorial(value: Double): Double {
+        // Only defined for non-negative whole numbers; anything else yields NaN -> a clean error.
+        if (value < 0.0 || value != round(value) || value > MAX_FACTORIAL) return Double.NaN
+        var result = 1.0
+        var n = 2
+        while (n <= value.toInt()) {
+            result *= n
+            n++
+        }
+        return result
+    }
+
     private class DivisionByZeroException : Exception()
     private class MalformedExpressionException : Exception()
 
     private companion object {
         val OPERATORS = setOf('+', '-', '*', '/', '%', '^')
+        val FUNCTIONS = setOf(
+            "sin", "cos", "tan", "asin", "acos", "atan", "log", "ln", "sqrt", "abs", "exp",
+        )
+        val CONSTANTS = mapOf("pi" to PI, "e" to E)
+        const val STRAIGHT_ANGLE = 180.0
+        const val PERCENT_DIVISOR = 100.0
+        const val MAX_FACTORIAL = 170.0 // 171! overflows Double to +Infinity
     }
 }
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2026 The Vela Authors
+  SPDX-License-Identifier: Apache-2.0
+-->
+<paths>
+    <!-- Maps Context.filesDir/recordings so captured clips can be shared via FileProvider. -->
+    <files-path
+        name="recordings"
+        path="recordings/" />
+</paths>

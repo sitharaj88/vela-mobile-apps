@@ -18,13 +18,10 @@ complexity:
     ignoreAnnotated: ['Composable', 'Preview']
 
 style:
+  # Disabled: pure noise in a design-system (color/dp tokens) and a math engine (operator
+  # precedence, formatting thresholds). Meaningful constants are still named where it aids reading.
   MagicNumber:
-    active: true
-    ignoreAnnotated: ['Composable', 'Preview']
-    ignorePropertyDeclaration: true
-    ignoreEnums: true
-  FunctionNaming:
-    ignoreAnnotated: ['Composable']
+    active: false
   MaxLineLength:
     maxLineLength: 120
 
@@ -33,7 +30,10 @@ naming:
     functionPattern: '[a-z][a-zA-Z0-9]*'
     ignoreAnnotated: ['Composable']
   TopLevelPropertyNaming:
-    constantPattern: '[A-Z][A-Za-z0-9]*'
+    constantPattern: '[A-Z][_A-Za-z0-9]*'
+  # Compose theme/contract files commonly group several small declarations; don't force one-per-file.
+  MatchingDeclarationName:
+    active: false
 
 comments:
   active: true
