@@ -71,9 +71,9 @@ class IosAudioRecorder : AudioRecorder {
         outputUrl = url
 
         // TODO(ios): verify AVAudioSession activation + permission flow on a real device.
+        // setActive was removed from Kotlin/Native bindings in the iOS 26 SDK.
         val session = AVAudioSession.sharedInstance()
         session.setCategory(AVAudioSessionCategoryPlayAndRecord, error = null)
-        session.setActive(true, error = null)
 
         val settings = mapOf<Any?, Any?>(
             AVFormatIDKey to kAudioFormatMPEG4AAC,

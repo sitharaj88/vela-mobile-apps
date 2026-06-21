@@ -18,10 +18,21 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.compose.ComposePlugin
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginExtension
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 private val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 private val compose = ComposePlugin.Dependencies(project)
+
+// KMP 2.2 + Compose 1.8 bug: Strong Skipping generates $artificial stability stubs that are
+// never defined in Kotlin/Native static frameworks, causing linker errors on iOS.
+extensions.configure<ComposeCompilerGradlePluginExtension> {
+    featureFlags.add(ComposeFeatureFlag.StrongSkipping.disabled())
+    stabilityConfigurationFiles.add(
+        rootProject.layout.projectDirectory.file("config/compose_stability.conf")
+    )
+}
 
 extensions.configure<KotlinMultiplatformExtension> {
     sourceSets.getByName("commonMain").dependencies {
