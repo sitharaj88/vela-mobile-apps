@@ -214,7 +214,10 @@ fun AgendaView(state: CalendarState, onOpenEvent: (Long) -> Unit) {
         VelaEmptyState(icon = Icons.Filled.EventBusy, title = "No upcoming events")
         return
     }
-    val grouped = state.occurrences.groupBy { localDateOf(it.startMillis) }.toSortedMap()
+    // toSortedMap() is JVM-only; sort the grouped entries by date for multiplatform.
+    val grouped = state.occurrences.groupBy { localDateOf(it.startMillis) }
+        .toList()
+        .sortedBy { (date, _) -> date }
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(top = tokens.spacing.sm),
         verticalArrangement = Arrangement.spacedBy(tokens.spacing.sm),

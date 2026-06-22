@@ -5,6 +5,7 @@
 package com.vela.apps.flashlight.data
 
 import com.vela.apps.flashlight.domain.Torch
+import kotlinx.cinterop.ExperimentalForeignApi
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import platform.AVFoundation.AVCaptureDevice
@@ -13,14 +14,14 @@ import platform.AVFoundation.AVCaptureTorchModeOff
 import platform.AVFoundation.AVCaptureTorchModeOn
 import platform.AVFoundation.hasTorch
 import platform.AVFoundation.isTorchAvailable
-import platform.AVFoundation.lockForConfiguration
 import platform.AVFoundation.setTorchMode
-import platform.AVFoundation.unlockForConfiguration
 
 /**
  * iOS torch backed by [AVCaptureDevice]. Best-effort: torch control needs the device to be locked
- * for configuration. Uncertain cinterop bindings are marked `TODO(ios)` and only compile on macOS.
+ * for configuration. `lockForConfiguration`/`unlockForConfiguration` are members on AVCaptureDevice
+ * in the iOS 26 SDK bindings (throwing, no error-pointer arg), so they are called directly.
  */
+@OptIn(ExperimentalForeignApi::class)
 private class IosTorch : Torch {
 
     // TODO(ios): defaultDeviceWithMediaType may need a video device discovery session on newer iOS.
@@ -29,13 +30,16 @@ private class IosTorch : Torch {
 
     override val isAvailable: Boolean = device?.hasTorch() == true
 
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
     override fun setEnabled(on: Boolean) {
         val captureDevice = device ?: return
         if (!captureDevice.isTorchAvailable()) return
-        // TODO(ios): error pointer passed as null; consider surfacing lock failures.
-        if (captureDevice.lockForConfiguration(null)) {
+        try {
+            captureDevice.lockForConfiguration(null)
             captureDevice.setTorchMode(if (on) AVCaptureTorchModeOn else AVCaptureTorchModeOff)
             captureDevice.unlockForConfiguration()
+        } catch (e: Throwable) {
+            // Best-effort: lock can fail if the device is busy; ignore.
         }
     }
 }
